@@ -35,30 +35,23 @@
 
 ### 1. MoneyGlass — 政治資金を、ガラスのように透明に
 
-全政党・全政治団体の資金の流れを可視化。AIエージェントが24時間監視・分析し、誰もが政治資金の実態にアクセスできる。
+全政党・全政治団体の資金の流れを可視化。収支報告書を構造化し、収入9カテゴリ・支出8カテゴリで分類。Rechartsによるインタラクティブなグラフとダッシュボード統計で、誰もが政治資金の実態にアクセスできる。
 
-- 全政党の政治資金収支報告書の構造化データ
-- AIエージェントが異常検知・パターン分析を常時実行
-- サンキーダイアグラムによるフロー可視化
-- 3年削除問題に対する永続アーカイブ
+- **公開フロントエンド** (`moneyglass-web` / port 3000) — ダッシュボード、団体検索、報告書閲覧
+- **管理画面** (`moneyglass-admin` / port 3001) — データ管理・メンテナンス
 
 ### 2. PolicyDiff — 全政党の政策を、差分で比較する
 
-全政党のマニフェスト・政策をGitのようにバージョン管理。AIエージェントが変更を追跡し、誰もが政策の違いと変遷を即座に把握できる。
+全政党のマニフェスト・政策を10カテゴリに分類し、政党間の比較を可能にする。Markdown形式の政策テキストをremark + remark-htmlでレンダリング。カテゴリ別・政党別のフィルタリングと、市民からの政策提案機能を実装。
 
-- 全政党のマニフェストを並列比較
-- AIエージェントが政策変更を検知し通知
-- Pull Requestによる市民からの政策提案
-- バージョン管理された政策の変遷追跡
+- **フロントエンド** (`policydiff-web` / port 3002) — 政策比較、カテゴリ別閲覧、提案投稿
 
 ### 3. ParliScope — 議会を、すべての人とエージェントに開く
 
-国会・地方議会の全データをAPI化。AIエージェントが法案を要約・分析し、誰もが議会の動きをリアルタイムに把握できる。
+国会の会期・法案・議員・投票・討論データをAPI化。14会期分のデータを構造化し、法案のステータス追跡、議員の投票履歴分析が可能。
 
-- 国会・地方議会の法案データAPI
-- AIエージェントが全法案を読み、要約・論点抽出
-- 市民による模擬審議・意見表明
-- 投票記録の構造化データベース
+- **公開フロントエンド** (`parliscope-web` / port 3003) — 法案検索、議員情報、投票記録
+- **管理画面** (`parliscope-admin` / port 3004) — データ管理・メンテナンス
 
 ## エージェントファースト設計
 
@@ -70,41 +63,173 @@ AIエージェント時代に、政党や企業が独占してきた政治プロ
 - **MCP対応**: Model Context Protocol による外部AIとのシームレスな連携
 - **監査ログ**: 全操作のトレーサビリティを保証。エージェントの行動も完全に透明
 
+## セットアップ
+
+### 前提条件
+
+- Node.js 22+
+- pnpm 10+
+- PostgreSQL
+
+### インストール手順
+
+```bash
+# 1. クローン
+git clone https://github.com/ochyai/open-japan-politech-platform.git
+cd open-japan-politech-platform
+
+# 2. 環境変数
+cp .env.example .env
+# .env に DATABASE_URL を設定
+
+# 3. 依存関係インストール
+pnpm install
+
+# 4. DB準備
+pnpm db:generate    # Prisma Client 生成
+pnpm db:migrate     # マイグレーション実行
+pnpm db:seed        # 初期データ投入
+
+# 5. データ取り込み
+pnpm ingest:all       # 全データソース一括
+# または個別:
+pnpm ingest:finance    # 政治資金データ
+pnpm ingest:parliament # 議会データ
+pnpm ingest:manifesto  # マニフェストデータ
+
+# 6. 開発サーバー起動
+pnpm dev               # 全アプリ一斉起動
+pnpm dev:moneyglass    # MoneyGlass のみ (port 3000 + 3001)
+pnpm dev:policydiff    # PolicyDiff のみ (port 3002)
+pnpm dev:parliscope    # ParliScope のみ (port 3003 + 3004)
+```
+
+### テスト・品質管理
+
+```bash
+pnpm test       # Vitest テスト実行
+pnpm lint       # Biome lint チェック
+pnpm lint:fix   # Biome lint 自動修正
+pnpm typecheck  # TypeScript 型チェック
+pnpm build      # プロダクションビルド
+```
+
+### その他のコマンド
+
+```bash
+pnpm db:studio  # Prisma Studio（DB GUI）
+pnpm db:reset   # DB リセット
+pnpm format     # Biome フォーマット
+pnpm clean      # node_modules 全削除
+```
+
+## API仕様
+
+### MoneyGlass API (port 3000)
+
+| メソッド | エンドポイント | 説明 | パラメータ |
+|---|---|---|---|
+| GET | `/api/organizations` | 政治団体一覧 | `party`, `type` |
+| GET | `/api/organizations/:id` | 団体詳細 | — |
+| GET | `/api/reports` | 報告書一覧 | `year`, `org` |
+| GET | `/api/reports/:id` | 報告書詳細（収支明細含む） | — |
+| GET | `/api/parties` | 政党一覧（資金集計付き） | — |
+| GET | `/api/stats` | ダッシュボード統計 | — |
+
+### PolicyDiff API (port 3002)
+
+| メソッド | エンドポイント | 説明 | パラメータ |
+|---|---|---|---|
+| GET | `/api/policies` | 政策一覧 | `party`, `category` |
+| GET | `/api/policies/:id` | 政策詳細 | — |
+| GET | `/api/parties` | 政党一覧（カテゴリ別件数付き） | — |
+| GET | `/api/compare` | 政策比較 | `category`, `parties` |
+| GET | `/api/proposals` | 提案一覧 | — |
+| GET | `/api/categories` | カテゴリ一覧（件数付き） | — |
+
+### ParliScope API (port 3003)
+
+| メソッド | エンドポイント | 説明 | パラメータ |
+|---|---|---|---|
+| GET | `/api/sessions` | 会期一覧 | — |
+| GET | `/api/sessions/:id` | 会期詳細 + 法案 | — |
+| GET | `/api/bills` | 法案一覧 | `status`, `session` |
+| GET | `/api/bills/:id` | 法案詳細（投票・議論含む） | — |
+| GET | `/api/politicians` | 議員一覧 | `party`, `chamber` |
+| GET | `/api/politicians/:id` | 議員詳細 + 投票履歴 | — |
+| GET | `/api/stats` | ダッシュボード統計 | — |
+
+## データモデル
+
+Prismaスキーマに21モデル・10 enumを定義。
+
+### 政治主体
+
+- **Party** — 政党（11政党）
+- **Politician** — 議員
+- **Prefecture** — 都道府県（47）
+- **PoliticalOrganization** — 政治団体
+
+### 政治資金
+
+- **FundReport** — 政治資金収支報告書
+- **FundIncome** — 収入明細（9カテゴリ: 個人献金、法人献金、政党交付金、事業収入 等）
+- **FundExpenditure** — 支出明細（8カテゴリ: 人件費、光熱費、事務所費、政治活動費 等）
+
+### 政策
+
+- **Policy** — 政策（10カテゴリ x 10政党）
+- **PolicyProposal** — 市民からの政策提案
+
+### 議会
+
+- **DietSession** — 国会会期（14会期）
+- **Bill** — 法案
+- **Vote** — 投票記録
+- **Discussion** — 討論記録
+
 ## 技術スタック
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **ORM**: Prisma
-- **Styling**: Tailwind CSS v4
-- **Package Manager**: pnpm (monorepo)
-- **Linter/Formatter**: Biome
-- **Testing**: Vitest
-- **CI/CD**: GitHub Actions
-- **Hosting**: Vercel / Cloudflare Pages
-- **AI/Agent**: MCP, LangChain, OpenAI API
+| カテゴリ | 技術 |
+|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript 5.9 |
+| Database | PostgreSQL (via Supabase / local) |
+| ORM | Prisma 6 |
+| Styling | Tailwind CSS v4 |
+| Charts | Recharts (MoneyGlass) |
+| Markdown | remark + remark-html (PolicyDiff) |
+| Package Manager | pnpm 10 (monorepo) |
+| Linter/Formatter | Biome 2.3 |
+| Testing | Vitest 3 |
+| CI/CD | GitHub Actions |
 
 ## ディレクトリ構造
 
 ```
 open-japan-politech-platform/
 ├── apps/
-│   ├── moneyglass-web/      # MoneyGlass 公開フロントエンド
-│   ├── moneyglass-admin/    # MoneyGlass 管理画面
-│   ├── policydiff-web/      # PolicyDiff フロントエンド
-│   ├── parliscope-web/      # ParliScope 公開フロントエンド
-│   └── parliscope-admin/    # ParliScope 管理画面
+│   ├── moneyglass-web/      # MoneyGlass 公開フロントエンド (port 3000)
+│   ├── moneyglass-admin/    # MoneyGlass 管理画面 (port 3001)
+│   ├── policydiff-web/      # PolicyDiff フロントエンド (port 3002)
+│   ├── parliscope-web/      # ParliScope 公開フロントエンド (port 3003)
+│   └── parliscope-admin/    # ParliScope 管理画面 (port 3004)
 ├── packages/
-│   ├── ui/                  # 共通UIコンポーネント
-│   ├── db/                  # Prismaスキーマ・DB共通
-│   ├── api/                 # API共通モジュール（エージェント対応）
-│   ├── auth/                # 認証共通モジュール（人間+エージェント）
-│   └── ai/                  # AI連携共通モジュール
-├── agents/                  # AIエージェント定義・設定
-├── supabase/                # Supabase設定・マイグレーション
+│   ├── ui/                  # 共通UIコンポーネント (@ojpp/ui)
+│   ├── db/                  # Prismaスキーマ・DB共通 (@ojpp/db)
+│   ├── api/                 # API共通ユーティリティ (@ojpp/api)
+│   └── ingestion/           # データ取り込みパイプライン (@ojpp/ingestion)
 ├── paper/                   # 学術論文
-├── docs/                    # ドキュメント
 └── .github/                 # CI/CD
 ```
+
+## 共有パッケージ
+
+| パッケージ | 説明 |
+|---|---|
+| `@ojpp/db` | Prisma Client シングルトン、21モデル / 10 enum のスキーマ定義 |
+| `@ojpp/ui` | Button, Card, Badge, Stat, Skeleton 等の共通UIコンポーネント |
+| `@ojpp/api` | ページネーション、エラーハンドリング、CORS設定、BigInt JSON変換 |
+| `@ojpp/ingestion` | 政治資金・議会・マニフェストのデータ取り込みスクリプト |
 
 ## 既存プロジェクトとの関係
 
