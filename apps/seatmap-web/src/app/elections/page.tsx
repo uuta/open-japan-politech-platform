@@ -1,5 +1,6 @@
 import { prisma } from "@ojpp/db";
 import { Card } from "@ojpp/ui";
+import { unstable_noStore as noStore } from "next/cache";
 
 function chamberLabel(chamber: string): string {
   return chamber === "HOUSE_OF_REPRESENTATIVES" ? "衆議院" : "参議院";
@@ -10,6 +11,7 @@ function formatDate(date: Date): string {
 }
 
 export default async function ElectionsPage() {
+  noStore();
   let elections: {
     id: string;
     name: string;

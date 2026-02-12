@@ -1,6 +1,7 @@
 import { prisma } from "@ojpp/db";
 import { Card, HeroSection } from "@ojpp/ui";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { SeatBar } from "./seat-bar";
 
 /* ---------- Types ---------- */
@@ -35,6 +36,7 @@ interface ElectionData {
 /* ---------- Data fetching (direct DB) ---------- */
 
 async function getElections(): Promise<ElectionData[]> {
+  noStore();
   const elections = await prisma.election.findMany({
     include: {
       results: {

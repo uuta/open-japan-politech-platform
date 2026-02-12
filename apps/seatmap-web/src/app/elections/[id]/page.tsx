@@ -2,6 +2,7 @@ import { prisma } from "@ojpp/db";
 import { Card, HeroSection } from "@ojpp/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
 import { SeatBar } from "../../seat-bar";
 
@@ -37,6 +38,7 @@ interface ElectionData {
 /* ---------- Data fetching (direct DB) ---------- */
 
 async function getElection(id: string): Promise<ElectionData | null> {
+  noStore();
   const election = await prisma.election.findUnique({
     where: { id },
     include: {
