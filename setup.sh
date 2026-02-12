@@ -40,17 +40,17 @@ PS_COLOR='\033[38;5;141m'   # ParliScope  — vivid purple
 MGA_COLOR='\033[38;5;75m'   # MG Admin    — soft blue
 PSA_COLOR='\033[38;5;183m'  # PS Admin    — lavender
 
-# Rainbow hues (smooth gradient)
+# Rainbow hues
 RAINBOW_HUES=(196 202 208 214 220 226 190 154 118 82 46 47 48 49 50 51 45 39 33 27 21 57 93 129 165 201 200 199 198 197)
 
 # -- State --------------------------------------------------------------------
 LOG="/tmp/ojpp-setup-$(date +%Y%m%d-%H%M%S).log"
 SKIP_DOCKER=false
-DEV_PID=""
 COMPOSE=""
 TOTAL_START=$SECONDS
 STEP=0
-TOTAL_STEPS=10
+TOTAL_STEPS=11
+APP_PIDS=()
 
 # Ensure cursor is visible on exit
 trap 'printf "${SHOW}"' EXIT
@@ -59,7 +59,6 @@ trap 'printf "${SHOW}"' EXIT
 #  Visual helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Rainbow gradient bar (full width, double-density)
 rainbow_bar() {
   local hues=(196 202 208 214 220 226 190 154 118 82 46 48 51 39 21 57 93 129 165 201 199 197)
   echo -ne "  "
@@ -67,7 +66,6 @@ rainbow_bar() {
   echo -e "${R}"
 }
 
-# Thicker rainbow bar (block char)
 rainbow_bar_block() {
   local hues=(196 202 208 214 220 226 190 154 118 82 46 48 51 39 21 57 93 129 165 201 199 197)
   echo -ne "  "
@@ -75,57 +73,43 @@ rainbow_bar_block() {
   echo -e "${R}"
 }
 
-# Rainbow text — each character gets a different hue
 rainbow() {
   local text="$1"
   local hues=(196 208 220 226 46 48 51 39 21 57 129 201 199 198)
   local hi=0
   for ((i=0; i<${#text}; i++)); do
     local c="${text:$i:1}"
-    if [[ "$c" == " " ]]; then
-      printf " "
-    else
-      printf "\033[1;38;5;%sm%s" "${hues[$((hi % ${#hues[@]}))]}" "$c"
-      ((hi++))
+    if [[ "$c" == " " ]]; then printf " "
+    else printf "\033[1;38;5;%sm%s" "${hues[$((hi % ${#hues[@]}))]}" "$c"; ((hi++))
     fi
   done
   printf "${R}"
 }
 
-# Animated rainbow wave for big text
 rainbow_wave() {
-  local text="$1"
-  local offset="${2:-0}"
+  local text="$1" offset="${2:-0}"
   local hues=(196 202 208 214 220 226 190 154 118 82 46 48 51 39 21 57 93 129 165 201)
   local hi=$offset
   for ((i=0; i<${#text}; i++)); do
     local c="${text:$i:1}"
-    if [[ "$c" == " " ]]; then
-      printf " "
-    else
-      printf "\033[1;38;5;%sm%s" "${hues[$((hi % ${#hues[@]}))]}" "$c"
-      ((hi++))
+    if [[ "$c" == " " ]]; then printf " "
+    else printf "\033[1;38;5;%sm%s" "${hues[$((hi % ${#hues[@]}))]}" "$c"; ((hi++))
     fi
   done
   printf "${R}"
 }
 
-# Rainbow progress bar with percentage
 draw_bar() {
-  local pct=$1
-  local w=36
-  local f=$((pct * w / 100))
-  local e=$((w - f))
+  local pct=$1 w=36
+  local f=$((pct * w / 100)) e=$((w - f))
   echo -ne "\r  ${DGRAY}│${R}  "
-  for ((i=0; i<f; i++)); do
-    printf "\033[38;5;%sm█" "${RAINBOW_HUES[$((i % ${#RAINBOW_HUES[@]}))]}"
+  for ((i=0; i<f; i++)); do printf "\033[38;5;%sm█" "${RAINBOW_HUES[$((i % ${#RAINBOW_HUES[@]}))]}"
   done
   printf "${DGRAY}"
   for ((i=0; i<e; i++)); do printf "░"; done
   printf "${R} ${WHT}%3d%%${R}${CLR}" "$pct"
 }
 
-# Step progress
 step_pct() {
   STEP=$((STEP + 1))
   local pct=$((STEP * 100 / TOTAL_STEPS))
@@ -137,10 +121,10 @@ step_pct() {
 # ─────────────────────────────────────────────────────────────────────────────
 #  Logging helpers
 # ─────────────────────────────────────────────────────────────────────────────
-msg()   { echo -e "  ${DGRAY}│${R}  $*"; }
-ok()    { echo -e "  ${DGRAY}│${R}  ${GRN}✔${R} $*${CLR}"; }
-wrn()   { echo -e "  ${DGRAY}│${R}  ${GOLD}⚠${R}  $*${CLR}"; }
-section()  { echo -e "\n  ${HOT}◇${R}  ${B}$*${R}"; }
+msg()     { echo -e "  ${DGRAY}│${R}  $*"; }
+ok()      { echo -e "  ${DGRAY}│${R}  ${GRN}✔${R} $*${CLR}"; }
+wrn()     { echo -e "  ${DGRAY}│${R}  ${GOLD}⚠${R}  $*${CLR}"; }
+section() { echo -e "\n  ${HOT}◇${R}  ${B}$*${R}"; }
 
 die() {
   printf "\r${SHOW}"
@@ -154,7 +138,6 @@ die() {
   exit 1
 }
 
-# Animated spinner — runs command in background with braille animation
 run_spin() {
   local label="$1"; shift
   local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
@@ -187,25 +170,33 @@ run_spin() {
   return "$rc"
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  Port helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
 port_in_use() {
   (echo >/dev/tcp/localhost/"$1") 2>/dev/null
 }
 
-# Kill all processes occupying OJPP ports (3000-3004)
-kill_port_users() {
-  local ports=(3000 3001 3002 3003 3004)
-  local killed=false
-  for p in "${ports[@]}"; do
+# Find a free port starting from the given number
+find_free_port() {
+  local port=$1
+  while port_in_use "$port"; do
+    port=$((port + 1))
+  done
+  echo "$port"
+}
+
+# Kill processes on specific ports
+kill_ports() {
+  for p in "$@"; do
     local pids
     pids=$(lsof -ti :"$p" 2>/dev/null || true)
     if [ -n "$pids" ]; then
       echo "$pids" | xargs kill -9 2>/dev/null || true
-      killed=true
     fi
   done
-  if [ "$killed" = true ]; then
-    sleep 1
-  fi
+  sleep 0.5
 }
 
 # =============================================================================
@@ -217,7 +208,6 @@ rainbow_bar_block
 echo ""
 echo ""
 
-# Big ASCII art with per-line rainbow offset
 echo -e "  \033[38;5;196m  ██████╗ \033[38;5;208m     ██╗\033[38;5;220m██████╗ \033[38;5;226m██████╗ ${R}"
 echo -e "  \033[38;5;196m ██╔═══██╗\033[38;5;208m     ██║\033[38;5;220m██╔══██╗\033[38;5;226m██╔══██╗${R}"
 echo -e "  \033[38;5;46m ██║   ██║\033[38;5;48m     ██║\033[38;5;51m██████╔╝\033[38;5;39m██████╔╝${R}"
@@ -247,22 +237,14 @@ draw_bar 0
 echo ""
 
 install_docker_mac() {
-  echo ""
   msg "${SKY}Docker Desktop をインストールします...${R}"
-  msg "${GRAY}(Homebrew 経由でダウンロード — 数分かかります)${R}"
-  echo ""
+  msg "${GRAY}(Homebrew 経由 — 数分かかります)${R}"
   if run_spin "Docker Desktop をインストール" brew install --cask docker; then
     msg ""
     msg "${GOLD}${B}Docker Desktop を起動してください:${R}"
-    msg ""
     msg "  ${CYN}open -a Docker${R}"
-    msg ""
-    msg "${GRAY}Docker のアイコンがメニューバーに表示されたら、もう一度このスクリプトを実行:${R}"
-    msg ""
-    msg "  ${CYN}bash setup.sh${R}"
-    msg ""
-    rainbow_bar
-    echo ""
+    msg "${GRAY}起動後、もう一度:${R}  ${CYN}bash setup.sh${R}"
+    echo ""; rainbow_bar; echo ""
     exit 0
   else
     return 1
@@ -270,105 +252,55 @@ install_docker_mac() {
 }
 
 if ! command -v docker &>/dev/null; then
-  echo ""
-  msg "${GOLD}Docker が見つかりません${R}"
-  msg ""
-
-  # macOS: try auto-install via Homebrew
   if [[ "$OSTYPE" == darwin* ]] && command -v brew &>/dev/null; then
-    msg "${SKY}Homebrew を検出 — 自動インストールを試みます${R}"
-    install_docker_mac || {
-      echo ""
-      msg "${PINK}${B}Docker Desktop のインストール:${R}"
-      msg ""
-      msg "  ${CYN}brew install --cask docker${R}"
-      msg ""
-      msg "  インストール後、Docker Desktop を起動してから再実行:"
-      msg "  ${CYN}bash setup.sh${R}"
-      echo ""
-      rainbow_bar
-      echo ""
-      exit 1
-    }
+    msg "${SKY}Homebrew を検出 — Docker を自動インストール${R}"
+    install_docker_mac || die "Docker のインストールに失敗\n     ${CYN}brew install --cask docker${R} を手動で実行"
   elif [[ "$OSTYPE" == darwin* ]]; then
     echo ""
     echo -e "  ${PINK}┌───────────────────────────────────────────────────────────${R}"
     echo -e "  ${PINK}│${R}  ${B}Docker Desktop が必要です${R}"
-    echo -e "  ${PINK}│${R}"
-    echo -e "  ${PINK}│${R}  ${WHT}方法1: Homebrew${R} ${GRAY}(おすすめ)${R}"
     echo -e "  ${PINK}│${R}  ${CYN}  brew install --cask docker${R}"
-    echo -e "  ${PINK}│${R}"
-    echo -e "  ${PINK}│${R}  ${WHT}方法2: 公式サイト${R}"
-    echo -e "  ${PINK}│${R}  ${CYN}  https://docker.com/products/docker-desktop${R}"
-    echo -e "  ${PINK}│${R}"
-    echo -e "  ${PINK}│${R}  インストール後、Docker Desktop を起動してから:"
-    echo -e "  ${PINK}│${R}  ${CYN}  bash setup.sh${R}"
+    echo -e "  ${PINK}│${R}  ${WHT}or${R} ${CYN}https://docker.com/products/docker-desktop${R}"
+    echo -e "  ${PINK}│${R}  起動後: ${CYN}bash setup.sh${R}"
     echo -e "  ${PINK}└───────────────────────────────────────────────────────────${R}"
-    echo ""
-    exit 1
+    echo ""; exit 1
   else
     echo ""
     echo -e "  ${PINK}┌───────────────────────────────────────────────────────────${R}"
     echo -e "  ${PINK}│${R}  ${B}Docker が必要です${R}"
-    echo -e "  ${PINK}│${R}"
-    echo -e "  ${PINK}│${R}  ${WHT}インストール:${R}"
     echo -e "  ${PINK}│${R}  ${CYN}  https://docs.docker.com/engine/install/${R}"
-    echo -e "  ${PINK}│${R}"
-    echo -e "  ${PINK}│${R}  インストール後:"
-    echo -e "  ${PINK}│${R}  ${CYN}  bash setup.sh${R}"
+    echo -e "  ${PINK}│${R}  インストール後: ${CYN}bash setup.sh${R}"
     echo -e "  ${PINK}└───────────────────────────────────────────────────────────${R}"
-    echo ""
-    exit 1
+    echo ""; exit 1
   fi
 fi
 
-# Docker daemon running? — auto-start on macOS
+# Docker daemon — auto-start on macOS
 if ! docker info >> "$LOG" 2>&1; then
   if [[ "$OSTYPE" == darwin* ]]; then
-    msg "${SKY}Docker Desktop を自動起動します...${R} 🐳"
+    msg "${SKY}Docker Desktop を自動起動 🐳${R}"
     open -a Docker 2>/dev/null || true
-
-    # Wait for Docker to be ready (up to 60s)
-    docker_frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    docker_fi=0
-    docker_start=$SECONDS
+    _fi=0; _start=$SECONDS
+    _frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     printf "${HIDE}"
     while ! docker info >> "$LOG" 2>&1; do
-      local_elapsed=$((SECONDS - docker_start))
+      _e=$((SECONDS - _start))
       printf "\r  ${DGRAY}│${R}  \033[38;5;%sm%s${R} Docker 起動中... ${GRAY}(%ds)${R}${CLR}" \
-        "${RAINBOW_HUES[$((docker_fi % ${#RAINBOW_HUES[@]}))]}" \
-        "${docker_frames[$((docker_fi % ${#docker_frames[@]}))]}" \
-        "$local_elapsed"
-      docker_fi=$((docker_fi + 1))
+        "${RAINBOW_HUES[$((_fi % ${#RAINBOW_HUES[@]}))]}" \
+        "${_frames[$((_fi % 10))]}" "$_e"
+      _fi=$((_fi + 1))
       sleep 1
-      if [ "$local_elapsed" -gt 60 ]; then
-        printf "${SHOW}\r"
-        die "Docker の起動タイムアウト (60s)\n     Docker Desktop を手動で起動してから ${CYN}bash setup.sh${R}"
-      fi
+      [ "$_e" -gt 60 ] && { printf "${SHOW}"; die "Docker タイムアウト (60s)"; }
     done
     printf "${SHOW}\r  ${DGRAY}│${R}  ${GRN}✔${R} Docker Desktop 起動完了 🐳${CLR}\n"
   else
-    echo ""
-    echo -e "  ${GOLD}┌───────────────────────────────────────────────────────────${R}"
-    echo -e "  ${GOLD}│${R}  ${B}Docker デーモンが起動していません${R}"
-    echo -e "  ${GOLD}│${R}"
-    echo -e "  ${GOLD}│${R}  ${CYN}  sudo systemctl start docker${R}"
-    echo -e "  ${GOLD}│${R}"
-    echo -e "  ${GOLD}│${R}  起動後、再実行:"
-    echo -e "  ${GOLD}│${R}  ${CYN}  bash setup.sh${R}"
-    echo -e "  ${GOLD}└───────────────────────────────────────────────────────────${R}"
-    echo ""
-    exit 1
+    die "Docker が起動していません\n     ${CYN}sudo systemctl start docker${R}"
   fi
 fi
 
 COMPOSE="docker compose"
 if ! $COMPOSE version >> "$LOG" 2>&1; then
-  if command -v docker-compose &>/dev/null; then
-    COMPOSE="docker-compose"
-  else
-    die "docker compose が見つかりません"
-  fi
+  command -v docker-compose &>/dev/null && COMPOSE="docker-compose" || die "docker compose が見つかりません"
 fi
 DOCKER_VER=$(docker --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | /usr/bin/head -1)
 ok "🐳 Docker ${DOCKER_VER}"
@@ -382,14 +314,12 @@ install_node() {
   if command -v fnm &>/dev/null; then
     fnm install 22 >> "$LOG" 2>&1 && eval "$(fnm env)" && fnm use 22 >> "$LOG" 2>&1
   elif [ -s "$HOME/.nvm/nvm.sh" ]; then
-    . "$HOME/.nvm/nvm.sh"
-    nvm install 22 >> "$LOG" 2>&1 && nvm use 22 >> "$LOG" 2>&1
+    . "$HOME/.nvm/nvm.sh"; nvm install 22 >> "$LOG" 2>&1 && nvm use 22 >> "$LOG" 2>&1
   elif command -v mise &>/dev/null; then
     mise install node@22 >> "$LOG" 2>&1 && eval "$(mise activate bash)" && mise use --env local node@22 >> "$LOG" 2>&1
   else
-    run_spin "fnm (Node バージョン管理) をインストール" bash -c "curl -fsSL https://fnm.vercel.app/install 2>/dev/null | bash -s -- --skip-shell >> '$LOG' 2>&1" || true
-    FNM_DIR="${FNM_DIR:-$HOME/.local/share/fnm}"
-    [ -d "$FNM_DIR" ] || FNM_DIR="$HOME/.fnm"
+    run_spin "fnm をインストール" bash -c "curl -fsSL https://fnm.vercel.app/install 2>/dev/null | bash -s -- --skip-shell >> '$LOG' 2>&1" || true
+    FNM_DIR="${FNM_DIR:-$HOME/.local/share/fnm}"; [ -d "$FNM_DIR" ] || FNM_DIR="$HOME/.fnm"
     export PATH="$FNM_DIR:$PATH"
     eval "$(fnm env 2>/dev/null)" || eval "$("$FNM_DIR/fnm" env 2>/dev/null)"
     run_spin "Node.js 22 をインストール" bash -c "fnm install 22 >> '$LOG' 2>&1 && fnm use 22 >> '$LOG' 2>&1"
@@ -398,17 +328,10 @@ install_node() {
 
 if command -v node &>/dev/null; then
   NODE_MAJOR=$(node -v | sed 's/v//' | cut -d. -f1)
-  if [ "$NODE_MAJOR" -ge 22 ]; then
-    ok "💚 Node.js $(node -v)"
-  else
-    wrn "Node.js $(node -v) → v22+ にアップグレード中"
-    install_node
-    ok "💚 Node.js $(node -v)"
-  fi
+  if [ "$NODE_MAJOR" -ge 22 ]; then ok "💚 Node.js $(node -v)"
+  else wrn "Node $(node -v) → v22+"; install_node; ok "💚 Node.js $(node -v)"; fi
 else
-  msg "${SKY}Node.js がインストールされていません — 自動インストール${R}"
-  install_node
-  ok "💚 Node.js $(node -v)"
+  msg "${SKY}Node.js 自動インストール${R}"; install_node; ok "💚 Node.js $(node -v)"
 fi
 step_pct
 
@@ -432,34 +355,29 @@ step_pct
 section "🐘 データベース"
 
 if port_in_use 54322; then
-  ok "既存の PostgreSQL を検出 (localhost:54322) → 再利用 🎯"
+  ok "既存 PostgreSQL 検出 (localhost:54322) → 再利用 🎯"
   SKIP_DOCKER=true
 else
-  run_spin "PostgreSQL 16 コンテナを起動" $COMPOSE up -d db \
-    || die "PostgreSQL の起動に失敗しました"
-
-  # Wait for postgres with animated spinner
-  spin_frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-  spin_i=0
+  run_spin "PostgreSQL 16 コンテナ起動" $COMPOSE up -d db \
+    || die "PostgreSQL の起動に失敗"
+  _fi=0
   printf "${HIDE}"
+  local_frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   for attempt in $(seq 1 30); do
-    printf "\r  ${DGRAY}│${R}  ${SKY}%s${R} PostgreSQL ready チェック...${CLR}" "${spin_frames[$spin_i]}"
-    spin_i=$(( (spin_i + 1) % ${#spin_frames[@]} ))
+    printf "\r  ${DGRAY}│${R}  ${SKY}%s${R} PostgreSQL ready...${CLR}" "${local_frames[$((_fi % 10))]}"
+    _fi=$((_fi + 1))
     if $COMPOSE exec -T db pg_isready -U postgres >> "$LOG" 2>&1; then
       printf "${SHOW}\r  ${DGRAY}│${R}  ${GRN}✔${R} PostgreSQL 起動完了 🐘${CLR}\n"
       break
     fi
     sleep 0.5
-    if [ "$attempt" -eq 30 ]; then
-      printf "${SHOW}"
-      die "PostgreSQL の起動タイムアウト (15s)"
-    fi
+    [ "$attempt" -eq 30 ] && { printf "${SHOW}"; die "PostgreSQL タイムアウト"; }
   done
 fi
 step_pct
 
 # =============================================================================
-#  5. .env
+#  5. .env + environment variables
 # =============================================================================
 section "📦 依存関係"
 
@@ -469,6 +387,17 @@ if [ ! -f .env ]; then
 else
   ok ".env 既存（上書きなし）"
 fi
+
+# CRITICAL: Export all env vars so child processes (Next.js, Prisma) can see them
+set -a
+source .env
+set +a
+
+# Also symlink .env into each app directory — Next.js reads .env from CWD only
+for app_dir in apps/*/; do
+  [ -d "$app_dir" ] && [ ! -e "${app_dir}.env" ] && ln -sf "../../.env" "${app_dir}.env"
+done
+ok "環境変数をロード (DATABASE_URL → 全アプリに配布)"
 step_pct
 
 # =============================================================================
@@ -491,49 +420,80 @@ run_spin "スキーマを DB に反映" pnpm --filter @ojpp/db push \
   || die "スキーマの反映に失敗\n     ${GRAY}DATABASE_URL を確認${R}"
 step_pct
 
-if run_spin "初期データを投入 (15政党・47都道府県・議員)" pnpm db:seed; then
-  :
-else
-  wrn "スキップ（既にデータが存在）"
-fi
+if run_spin "初期データを投入 (15政党・47都道府県・議員)" pnpm db:seed; then :
+else wrn "スキップ（既にデータが存在）"; fi
 
-if run_spin "データソースを取り込み (政治資金・議会・政策)" pnpm ingest:all; then
-  :
-else
-  wrn "スキップ（既にデータが存在）"
-fi
+if run_spin "データソースを取り込み (政治資金・議会・政策)" pnpm ingest:all; then :
+else wrn "スキップ（既にデータが存在）"; fi
 step_pct
 
 # =============================================================================
-#  8. Clean stale caches & start dev
+#  8. Clean caches + find free ports + start apps
 # =============================================================================
 section "🚀 アプリ起動"
 
-# IMPORTANT: Remove stale .next caches to prevent module-not-found errors
+# Clean stale caches
 run_spin "ビルドキャッシュをクリーン 🧹" bash -c "rm -rf apps/*/.next apps/*/.turbo .turbo node_modules/.cache 2>/dev/null; echo ok"
 
-# Kill any leftover processes on OJPP ports (from previous runs)
-kill_port_users
-if port_in_use 3000 || port_in_use 3002 || port_in_use 3003; then
-  wrn "ポート 3000-3004 の既存プロセスを終了しました"
+# Kill any leftover OJPP processes on default ports
+kill_ports 3000 3001 3002 3003 3004
+sleep 0.5
+
+# Find 5 free ports — auto-assign if defaults are occupied
+PORT_MG=$(find_free_port 3000)
+PORT_MGA=$(find_free_port $((PORT_MG + 1)))
+PORT_PD=$(find_free_port $((PORT_MGA + 1)))
+PORT_PS=$(find_free_port $((PORT_PD + 1)))
+PORT_PSA=$(find_free_port $((PORT_PS + 1)))
+
+if [ "$PORT_MG" -ne 3000 ] || [ "$PORT_MGA" -ne 3001 ] || [ "$PORT_PD" -ne 3002 ] || [ "$PORT_PS" -ne 3003 ] || [ "$PORT_PSA" -ne 3004 ]; then
+  wrn "一部のデフォルトポートが使用中 → 代替ポートを自動割り当て"
 fi
 
-DEV_LOG="/tmp/ojpp-dev-$(date +%s).log"
+ok "ポート割り当て: ${CYN}${PORT_MG}${R} ${CYN}${PORT_MGA}${R} ${CYN}${PORT_PD}${R} ${CYN}${PORT_PS}${R} ${CYN}${PORT_PSA}${R}"
 
-start_dev() {
-  kill_port_users
-  pnpm dev > "$DEV_LOG" 2>&1 &
-  DEV_PID=$!
+# Start each Next.js app individually with the assigned port
+NEXT_BIN=""
+if [ -f "apps/moneyglass-web/node_modules/.bin/next" ]; then
+  NEXT_BIN="node_modules/.bin/next"
+elif [ -f "node_modules/.bin/next" ]; then
+  NEXT_BIN="../../node_modules/.bin/next"
+fi
+
+start_one_app() {
+  local dir="$1" port="$2" name="$3"
+  local log="/tmp/ojpp-${name}-$(date +%s).log"
+  if [ -n "$NEXT_BIN" ]; then
+    (cd "$dir" && exec "$NEXT_BIN" dev --port "$port") > "$log" 2>&1 &
+  else
+    (cd "$dir" && PATH="./node_modules/.bin:../../node_modules/.bin:$PATH" exec next dev --port "$port") > "$log" 2>&1 &
+  fi
+  APP_PIDS+=($!)
 }
 
-start_dev
+start_all_apps() {
+  APP_PIDS=()
+  start_one_app "apps/moneyglass-web"   "$PORT_MG"  "mg-web"
+  start_one_app "apps/moneyglass-admin"  "$PORT_MGA" "mg-admin"
+  start_one_app "apps/policydiff-web"    "$PORT_PD"  "pd-web"
+  start_one_app "apps/parliscope-web"    "$PORT_PS"  "ps-web"
+  start_one_app "apps/parliscope-admin"  "$PORT_PSA" "ps-admin"
+}
 
-# Cleanup handler
+start_all_apps
+
+# Cleanup handler — kill all app processes + release ports
 cleanup() {
   printf "${SHOW}\n"
   printf "  ${HOT}◇${R}  停止中...\r"
-  kill "$DEV_PID" 2>/dev/null || true
-  wait "$DEV_PID" 2>/dev/null || true
+  for pid in "${APP_PIDS[@]}"; do
+    kill "$pid" 2>/dev/null || true
+  done
+  for pid in "${APP_PIDS[@]}"; do
+    wait "$pid" 2>/dev/null || true
+  done
+  # Force-kill anything still on our ports
+  kill_ports "$PORT_MG" "$PORT_MGA" "$PORT_PD" "$PORT_PS" "$PORT_PSA"
   if [ "$SKIP_DOCKER" = false ]; then
     $COMPOSE down >> "$LOG" 2>&1 || true
   fi
@@ -545,7 +505,15 @@ trap cleanup INT TERM
 
 msg "${GRAY}初回コンパイル中... ☕${R}"
 
-DEV_RETRIES=0
+# Wait for each public app to be ready
+RETRY_DONE=false
+
+any_app_alive() {
+  for pid in "${APP_PIDS[@]}"; do
+    kill -0 "$pid" 2>/dev/null && return 0
+  done
+  return 1
+}
 
 wait_for_app() {
   local port=$1 name=$2 emoji=$3 color=$4
@@ -555,59 +523,59 @@ wait_for_app() {
   printf "${HIDE}"
   while true; do
     local col_i=$((fi % ${#RAINBOW_HUES[@]}))
-    printf "\r  ${DGRAY}│${R}  \033[38;5;%sm%s${R} %s を起動中...${CLR}" "${RAINBOW_HUES[$col_i]}" "${frames[$((fi % ${#frames[@]}))]}" "$name"
+    printf "\r  ${DGRAY}│${R}  \033[38;5;%sm%s${R} %s を起動中...${CLR}" \
+      "${RAINBOW_HUES[$col_i]}" "${frames[$((fi % 10))]}" "$name"
     fi=$((fi + 1))
 
     if curl -sf -o /dev/null --max-time 0.5 "http://localhost:$port" 2>/dev/null; then
       local dt=$((SECONDS - start))
       local ts=""
       [ "$dt" -gt 3 ] && ts=" ${GRAY}(${dt}s)${R}"
-      printf "${SHOW}\r  ${DGRAY}│${R}  ${GRN}✔${R} %s ${color}${B}%s${R}%b${CLR}\n" "$emoji" "$name" "$ts"
+      printf "${SHOW}\r  ${DGRAY}│${R}  ${GRN}✔${R} %s ${color}${B}%s${R} → ${CYN}localhost:%s${R}%b${CLR}\n" "$emoji" "$name" "$port" "$ts"
       return 0
     fi
 
-    # Dev server crashed — auto-retry once
-    if ! kill -0 "$DEV_PID" 2>/dev/null; then
-      if [ "$DEV_RETRIES" -lt 1 ]; then
-        DEV_RETRIES=$((DEV_RETRIES + 1))
-        printf "${SHOW}\r  ${DGRAY}│${R}  ${GOLD}⚠${R}  開発サーバー再起動中...${CLR}\n"
+    # All processes dead — retry once
+    if ! any_app_alive; then
+      if [ "$RETRY_DONE" = false ]; then
+        RETRY_DONE=true
+        printf "${SHOW}\r  ${DGRAY}│${R}  ${GOLD}⚠${R}  アプリ再起動中...${CLR}\n"
         rm -rf apps/*/.next 2>/dev/null || true
+        kill_ports "$PORT_MG" "$PORT_MGA" "$PORT_PD" "$PORT_PS" "$PORT_PSA"
         sleep 1
-        DEV_LOG="/tmp/ojpp-dev-$(date +%s).log"
-        start_dev
+        start_all_apps
         sleep 2
-        start=$SECONDS
-        fi=0
+        start=$SECONDS; fi=0
+        printf "${HIDE}"
         continue
       fi
       printf "${SHOW}\r  ${DGRAY}│${R}  ${RED}✖${R} %s${CLR}\n" "$name"
-      die "開発サーバーが異常終了\n     ${GRAY}ログ: $DEV_LOG${R}"
+      die "全アプリが異常終了\n     ${GRAY}ログ: /tmp/ojpp-*.log${R}"
     fi
 
-    if [ $((SECONDS - start)) -gt 120 ]; then
+    [ $((SECONDS - start)) -gt 120 ] && {
       printf "${SHOW}\r"
-      wrn "${name} タイムアウト — 手動で確認: http://localhost:${port}"
+      wrn "${name} — 手動確認: http://localhost:${port}"
       return 0
-    fi
+    }
 
-    sleep 0.12
+    sleep 0.15
   done
 }
 
-wait_for_app 3000 "MoneyGlass"  "🏦" "$MG_COLOR"
-wait_for_app 3002 "PolicyDiff"  "📋" "$PD_COLOR"
-wait_for_app 3003 "ParliScope"  "🏛️ " "$PS_COLOR"
+wait_for_app "$PORT_MG"  "MoneyGlass"  "🏦" "$MG_COLOR"
+wait_for_app "$PORT_PD"  "PolicyDiff"  "📋" "$PD_COLOR"
+wait_for_app "$PORT_PS"  "ParliScope"  "🏛️ " "$PS_COLOR"
 step_pct
 
 # =============================================================================
-#  COMPLETE — The big finale
+#  COMPLETE — The big finale ✧
 # =============================================================================
 ELAPSED=$((SECONDS - TOTAL_START))
 MINS=$((ELAPSED / 60))
 SECS=$((ELAPSED % 60))
 
-# Terminal bell
-printf "\a"
+printf "\a"  # bell
 
 echo ""
 echo ""
@@ -615,7 +583,6 @@ rainbow_bar_block
 rainbow_bar_block
 echo ""
 
-# Big "READY" banner with per-character rainbow
 echo -ne "  "; rainbow_wave "██████╗ ███████╗ █████╗ ██████╗ ██╗   ██╗" 0; echo ""
 echo -ne "  "; rainbow_wave "██╔══██╗██╔════╝██╔══██╗██╔══██╗╚██╗ ██╔╝" 3; echo ""
 echo -ne "  "; rainbow_wave "██████╔╝█████╗  ███████║██║  ██║ ╚████╔╝ " 6; echo ""
@@ -629,36 +596,32 @@ rainbow_bar_block
 echo ""
 echo ""
 
-# App showcase — boxed URLs
-echo -e "  ${DGRAY}┌──────────────────────────────────────────────────────────────┐${R}"
-echo -e "  ${DGRAY}│${R}                                                              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}    🏦 ${MG_COLOR}${B}MoneyGlass${R}    ${CYN}${UL}http://localhost:3000${R}    ${PEACH}政治資金の流れ${R}   ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}                                                              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}    📋 ${PD_COLOR}${B}PolicyDiff${R}    ${CYN}${UL}http://localhost:3002${R}    ${MINT}政策を比較${R}       ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}                                                              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}    🏛️  ${PS_COLOR}${B}ParliScope${R}    ${CYN}${UL}http://localhost:3003${R}    ${LAVD}国会を可視化${R}     ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}                                                              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}└──────────────────────────────────────────────────────────────┘${R}"
+# Dynamic URL display
+echo -e "  ${DGRAY}╔══════════════════════════════════════════════════════════════╗${R}"
+echo -e "  ${DGRAY}║${R}                                                              ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}    🏦 ${MG_COLOR}${B}MoneyGlass${R}    ${CYN}${UL}http://localhost:${PORT_MG}${R}    ${PEACH}政治資金の流れ${R}   ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}                                                              ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}    📋 ${PD_COLOR}${B}PolicyDiff${R}    ${CYN}${UL}http://localhost:${PORT_PD}${R}    ${MINT}政策を比較${R}       ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}                                                              ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}    🏛️  ${PS_COLOR}${B}ParliScope${R}    ${CYN}${UL}http://localhost:${PORT_PS}${R}    ${LAVD}国会を可視化${R}     ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}                                                              ${DGRAY}║${R}"
+echo -e "  ${DGRAY}╚══════════════════════════════════════════════════════════════╝${R}"
 
 echo ""
-echo -e "  ${DGRAY}管理画面${R}  ${MGA_COLOR}localhost:3001${R} (MoneyGlass)  ${PSA_COLOR}localhost:3004${R} (ParliScope)"
+echo -e "  ${DGRAY}管理画面${R}  ${MGA_COLOR}localhost:${PORT_MGA}${R} (MoneyGlass)  ${PSA_COLOR}localhost:${PORT_PSA}${R} (ParliScope)"
 echo ""
 
-# Stats line
 echo -ne "  "; rainbow "(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧"; echo -e "  ${WHT}${B}${MINS}分${SECS}秒${R}${GRAY}で全環境構築完了${R}"
 echo ""
 
-# Tips box
 echo -e "  ${DGRAY}┌──────────────────────────────────────────────────┐${R}"
-echo -e "  ${DGRAY}│${R}  ${B}Tips${R}                                           ${DGRAY}│${R}"
 echo -e "  ${DGRAY}│${R}  ${GRAY}停止${R}      ${WHT}Ctrl+C${R}                              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}  ${GRAY}ログ${R}      ${WHT}${DEV_LOG}${R}  ${DGRAY}│${R}"
+echo -e "  ${DGRAY}│${R}  ${GRAY}再起動${R}    ${WHT}bash setup.sh${R}                       ${DGRAY}│${R}"
 echo -e "  ${DGRAY}│${R}  ${GRAY}DB削除${R}    ${WHT}docker compose down -v${R}              ${DGRAY}│${R}"
-echo -e "  ${DGRAY}│${R}  ${GRAY}GitHub${R}    ${CYN}github.com/ochyai/open-japan-politech-platform${R}  ${DGRAY}│${R}"
 echo -e "  ${DGRAY}└──────────────────────────────────────────────────┘${R}"
 echo ""
 rainbow_bar
 echo ""
 
-# Keep running until Ctrl+C
-wait "$DEV_PID" 2>/dev/null || true
+# Keep running — wait for any app to exit, then wait for all
+wait "${APP_PIDS[@]}" 2>/dev/null || true

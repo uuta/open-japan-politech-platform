@@ -19,18 +19,12 @@
 > **必要なもの**: [Docker](https://docs.docker.com/get-docker/) と [Git](https://git-scm.com/) だけ。Node.js / pnpm は自動インストールされます。
 
 ```bash
-git clone https://github.com/ochyai/open-japan-politech-platform.git 2>/dev/null; cd open-japan-politech-platform && git pull -q && bash setup.sh
+(git clone https://github.com/ochyai/open-japan-politech-platform.git 2>/dev/null || true) && cd open-japan-politech-platform && git pull -q && bash setup.sh
 ```
 
-セットアップが完了すると、3つのURLが表示されます:
+セットアップ完了後、自動的に空きポートを探して3つのURLを表示します（デフォルト: 3000, 3002, 3003）。
 
-| アプリ | URL | 概要 |
-|---|---|---|
-| **MoneyGlass** | http://localhost:3000 | 政治資金可視化 |
-| **PolicyDiff** | http://localhost:3002 | 政策比較 |
-| **ParliScope** | http://localhost:3003 | 議会監視 |
-
-> 停止: `Ctrl+C` / 再起動: `bash setup.sh` / DB削除: `docker compose down -v`
+> 停止: `Ctrl+C`（ポートは自動解放） / 再起動: `bash setup.sh` / DB削除: `docker compose down -v`
 
 ---
 
