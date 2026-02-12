@@ -130,7 +130,8 @@
 
 - **Node.js** 22+
 - **pnpm** 10+
-- **PostgreSQL** (ローカル or Supabase)
+- **PostgreSQL** (ローカル or [Supabase](https://supabase.com/))
+- **Supabase CLI**（ローカル開発時、任意）
 
 ### セットアップ
 
@@ -141,7 +142,10 @@ cd open-japan-politech-platform
 
 # 環境変数
 cp .env.example .env
-# .env に DATABASE_URL を設定
+# .env に DATABASE_URL 等を設定（.env.example を参照）
+
+# Supabase ローカル開発の場合（任意）
+npx supabase start
 
 # 依存関係インストール + DB準備
 pnpm install
@@ -372,7 +376,10 @@ open-japan-politech-platform/
 │   ├── db/                   # @ojpp/db — Prisma スキーマ (21モデル / 10 enum)
 │   ├── api/                  # @ojpp/api — ページネーション, エラー, CORS, BigInt変換
 │   └── ingestion/            # @ojpp/ingestion — 政治資金・議会・マニフェスト取り込み
-├── paper/                    # 学術論文
+├── data/                     # デモ用データセット（JSON）— 詳細は data/README.md
+├── paper/                    # 学術論文（PoliTech 5地域比較分析）
+├── docs/                     # ドキュメント・スクリーンショット・リサーチノート
+├── supabase/                 # Supabase ローカル開発設定
 ├── .github/workflows/        # CI/CD (lint → typecheck → test → build)
 ├── CONTRIBUTING.md           # コントリビューションガイド
 ├── CODE_OF_CONDUCT.md        # 行動規範

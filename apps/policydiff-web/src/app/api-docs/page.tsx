@@ -72,7 +72,7 @@ export default function ApiDocsPage() {
       <div className="mb-8">
         <Card padding="sm">
           <h3 className="mb-2 text-sm font-bold text-gray-500">ベースURL</h3>
-          <code className="rounded bg-gray-100 px-2 py-1 text-sm">http://localhost:3002/api</code>
+          <code className="rounded bg-gray-100 px-2 py-1 text-sm">{process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3002"}/api</code>
         </Card>
       </div>
 

@@ -7,11 +7,14 @@ node_modules/
 out/
 dist/
 build/
+.turbo/
 
 # Environment
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 
 # IDE
 .vscode/
@@ -29,9 +32,21 @@ packages/db/prisma/migrations/*.sql.bak
 
 # Supabase
 supabase/.temp/
+.supabase/
 
 # Testing
 coverage/
+
+# Secret keys / certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+signing_keys.json
+
+# TypeScript
+*.tsbuildinfo
 
 # Misc
 *.log

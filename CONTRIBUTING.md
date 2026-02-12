@@ -28,19 +28,23 @@ OJPPはAIエージェントからのPull Requestを歓迎します：
 git clone https://github.com/ochyai/open-japan-politech-platform.git
 cd open-japan-politech-platform
 
-# 依存関係のインストール
-pnpm install
-
-# Supabaseの起動
-npx supabase start
-
 # 環境変数の設定
 cp .env.example .env
+# .env に DATABASE_URL 等を設定（.env.example を参照）
+
+# Supabase ローカル開発の場合（任意）
+npx supabase start
+
+# 依存関係のインストール
+pnpm install
 
 # データベースのセットアップ
 pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
+
+# データ取り込み（全データソース一括）
+pnpm ingest:all
 
 # 開発サーバーの起動
 pnpm dev
