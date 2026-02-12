@@ -10,7 +10,11 @@
     "ingest:parliament": "dotenv -e ../../.env -- tsx src/kokkai/ingest-sessions.ts && dotenv -e ../../.env -- tsx src/kokkai/ingest-bills.ts",
     "ingest:manifesto": "dotenv -e ../../.env -- tsx src/manifesto/seed-policies.ts",
     "ingest:elections": "dotenv -e ../../.env -- tsx src/elections/seed-elections.ts",
-    "ingest:all": "pnpm ingest:finance && pnpm ingest:parliament && pnpm ingest:manifesto && pnpm ingest:elections",
+    "ingest:real-finance": "dotenv -e ../../.env -- tsx src/political-finance/seed-real-finance.ts",
+    "ingest:councillors": "dotenv -e ../../.env -- tsx src/politicians/seed-councillors.ts",
+    "ingest:representatives": "dotenv -e ../../.env -- tsx src/politicians/seed-representatives.ts",
+    "ingest:real-bills": "dotenv -e ../../.env -- tsx src/kokkai/seed-real-bills.ts",
+    "ingest:all": "pnpm ingest:finance && pnpm ingest:parliament && pnpm ingest:manifesto && pnpm ingest:elections && pnpm ingest:councillors && pnpm ingest:representatives",
     "test": "vitest run"
   },
   "dependencies": {
