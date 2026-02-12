@@ -219,6 +219,97 @@ pnpm dev:seatmap       # SeatMap (port 3005)
 
 ---
 
+## 🤖 AIエージェントファースト開発
+
+> **このプロジェクトの最大の特徴: 人間もAIも平等に開発に参加できる**
+
+OJPPは「AIエージェントが主体的に政治データ基盤を改善し続ける」ことを前提に設計されています。コードの追加・修正・テスト・デプロイまで、AIエージェントが自律的に行えます。
+
+### 🔥 Claude Code で開発（推奨）
+
+このリポジトリを clone して Claude Code を起動するだけで、AIがコードベースを完全に理解し、あらゆる開発タスクを実行できます。
+
+```bash
+cd open-japan-politech-platform
+claude
+```
+
+**依頼の例:**
+| やりたいこと | Claude Code への指示 |
+|-------------|-------------------|
+| 新機能追加 | 「MoneyGlassにグラフを追加して」 |
+| バグ修正 | 「PolicyDiffのページが表示されないバグを直して」 |
+| テスト作成 | 「SeatMapのAPIのテストを書いて」 |
+| データ追加 | 「2026年の選挙データを取り込むスクリプトを作って」 |
+| UI改善 | 「ParliScopeのダッシュボードをもっと見やすくして」 |
+| スキーマ変更 | 「Prismaに新しいモデルを追加してマイグレーションして」 |
+| 全体改善 | 「コード品質を上げてリファクタリングして」 |
+
+### 🦞 OpenClaw で開発
+
+```bash
+openclaw .
+```
+
+OpenClaw でも同様にリポジトリ全体を操作できます。UIの改善、APIの追加、データパイプラインの構築など、あらゆるタスクに対応。
+
+### 🏗️ AIエージェントのための技術マップ
+
+```
+open-japan-politech-platform/
+├── apps/                          ← Next.js 15 アプリ（ここを編集）
+│   ├── moneyglass-web/   :3000   💰 政治資金
+│   ├── moneyglass-admin/ :3001   💰 管理画面
+│   ├── policydiff-web/   :3002   📋 政策比較
+│   ├── parliscope-web/   :3003   🏛️ 国会
+│   ├── parliscope-admin/ :3004   🏛️ 管理画面
+│   └── seatmap-web/      :3005   💺 議席勢力図
+├── packages/
+│   ├── db/                        🗄️ Prisma スキーマ + クライアント
+│   ├── api/                       🔌 共通API ユーティリティ
+│   ├── ui/                        🎨 UIコンポーネント (11個)
+│   └── ingestion/                 📊 データ取り込みスクリプト
+└── paper/                         📄 学術論文
+```
+
+**よくある操作:**
+```bash
+# DBスキーマ変更
+# → packages/db/prisma/schema.prisma を編集
+pnpm db:generate && pnpm --filter @ojpp/db push
+
+# データ投入
+pnpm ingest:all          # 全データ一括
+pnpm ingest:elections    # 選挙データのみ
+pnpm ingest:finance      # 政治資金のみ
+
+# 開発サーバー
+bash setup.sh            # 全アプリ一括起動（推奨）
+pnpm dev:seatmap         # 個別起動も可能
+
+# 品質チェック
+pnpm typecheck && pnpm lint && pnpm test
+```
+
+**コーディング規約:**
+- TypeScript strict mode（型安全必須）
+- Biome でフォーマット・リント
+- Server Components 優先、必要な場合のみ `"use client"`
+- `@/` からの絶対パスインポート
+- API-first: 全データは REST API として公開
+
+### 🌍 誰でも参加できる
+
+技術者でなくても参加できます:
+- **Issue を立てる** — バグ報告、機能リクエスト、データの誤り報告
+- **議論に参加** — GitHub Discussions でアイデアを共有
+- **ドキュメント改善** — 説明文やREADMEの改善提案
+- **データ提供** — 公開されている政治データソースの共有
+
+> 💡 **AIエージェントからのPull Requestも歓迎します。** `agent/` ラベルを付けてPRを送ってください。
+
+---
+
 ## API仕様
 
 全APIはRESTful JSONを返し、ページネーション（`?page=1&limit=20`）に対応。
@@ -465,49 +556,6 @@ GovTech（行政DX）とCivicTech（市民技術）の二分法では捉えき�
 
 - [paper.pdf](paper/paper.pdf) — PDF版
 - [paper.md](paper/paper.md) — Markdown版
-
----
-
-## 🤖 AIエージェントで開発に参加する
-
-このプロジェクトはAIエージェントとの協働を前提に設計されています。
-
-### Claude Code で開発
-
-```bash
-# リポジトリをcloneしたら
-cd open-japan-politech-platform
-claude
-
-# Claude Code に依頼する例：
-# 「MoneyGlassのダッシュボードにグラフを追加して」
-# 「新しいAPIエンドポイントを作って」
-# 「テストを書いて」
-# 「バグを直して」
-```
-
-Claude Code はこのリポジトリの構造を理解し、コードの追加・修正・テストを自動で行えます。
-
-### OpenClaw で開発
-
-```bash
-# OpenClaw でもこのリポジトリを直接操作できます
-openclaw .
-
-# コマンド例：
-# 「ParliScopeに新しいページを追加」
-# 「Prismaスキーマにモデルを追加してマイグレーション」
-# 「選挙データの取り込みスクリプトを改善」
-```
-
-### AIエージェントへのヒント
-
-- **モノレポ構造**: `apps/` にNext.jsアプリ、`packages/` に共通パッケージ
-- **DB操作**: `packages/db/prisma/schema.prisma` を編集 → `pnpm db:generate` → `pnpm --filter @ojpp/db push`
-- **新しいアプリ追加**: `apps/moneyglass-web/` をテンプレートにコピー
-- **データ追加**: `packages/ingestion/src/` にスクリプトを追加
-- **UIコンポーネント**: `packages/ui/src/` — NavigationBar, Card, HeroSection, Button 等
-- **コーディング規約**: TypeScript strict, Biome, Server Components優先
 
 ---
 

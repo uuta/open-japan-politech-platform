@@ -801,6 +801,15 @@ fi
 echo -e "  ${DGRAY}管理画面${R}  ${MGA_COLOR}localhost:${PORT_MGA}${R} (MoneyGlass)  ${PSA_COLOR}localhost:${PORT_PSA}${R} (ParliScope)"
 echo ""
 
+echo ""
+echo -e "  ${GOLD}💡 ブラウザで開く方法${R}"
+echo -e "  ${GRAY}────────────────────────────────────────────${R}"
+echo -e "  ${WHT}方法①${R} ${GRAY}URLを ${WHT}右クリック${R} ${GRAY}→「リンクを開く」を選ぶ${R}"
+echo -e "  ${WHT}方法②${R} ${GRAY}URLをマウスで選択して ${WHT}コピー${R}${GRAY}（⌘+C）${R}"
+echo -e "          ${GRAY}→ ブラウザのアドレスバーに ${WHT}ペースト${R}${GRAY}（⌘+V）して Enter${R}"
+echo -e "  ${WHT}方法③${R} ${GRAY}⌘ キーを押しながら URL をクリック${R}"
+echo ""
+
 echo -ne "  "; rainbow "(ﾉ◕ヮ◕)ﾉ*:・ﾟ✧  セットアップ完了！！"; echo ""
 echo -e "  ${WHT}${B}${MINS}分${SECS}秒${R}${GRAY}で全環境が整ったよ！さあ政治を見に行こう！${R}"
 echo ""
@@ -810,6 +819,9 @@ echo -e "  ${GRAY}もう一回やる${R}    ${DGRAY}→${R}  ${WHT}bash setup.sh
 echo -e "  ${GRAY}データも消す${R}    ${DGRAY}→${R}  ${WHT}docker compose down -v${R}"
 echo ""
 rainbow_bar
+echo ""
+echo -e "  ${PEACH}🎉 おめでとう！全ての準備が整ったよ！${R}"
+echo -e "  ${GRAY}上の URL をブラウザで開いて、日本の政治データを見てみよう${R}"
 echo ""
 
 # Keep running — wait for any app to exit, then wait for all
