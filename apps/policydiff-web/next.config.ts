@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@ojpp/ui"],
+  serverExternalPackages: ["@prisma/client", "@ojpp/db"],
   outputFileTracingRoot: path.join(__dirname, "../../"),
 };
 
