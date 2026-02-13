@@ -58,7 +58,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div className="mx-auto max-w-7xl">
               <p>AIエージェント時代の政策比較 -- あなたのエージェントが全政党の政策を常時分析する</p>
               <p className="mt-2">政党にも企業にもよらない、完全オープンな政治テクノロジー基盤</p>
-              <p className="mt-1 text-slate-600">Open Japan PoliTech Platform v0.1 | AGPL-3.0</p>
+              <p className="mt-1 text-slate-600">Open Japan PoliTech Platform v0.1 | AGPL-3.0-or-later</p>
             </div>
           </footer>
         </ScrollReveal>

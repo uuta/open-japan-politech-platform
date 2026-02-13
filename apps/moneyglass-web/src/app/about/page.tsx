@@ -49,7 +49,7 @@ export default function AboutPage() {
         <div className="glass-card rounded-xl p-8">
           <h3 className="mb-4 text-xl font-bold text-[#FF6B35]">ライセンス</h3>
           <p className="leading-relaxed text-[#8b949e]">
-            本プロジェクトはAGPL-3.0ライセンスの下で公開されています。
+            本プロジェクトはAGPL-3.0-or-laterライセンスの下で公開されています。
             政党にも企業にもよらない、完全にオープンな政治テクノロジー基盤として、
             誰でも自由に利用・改変・再配布が可能です。
           </p>

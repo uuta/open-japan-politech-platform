@@ -40,7 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div className="mx-auto max-w-7xl">
               <p className="tracking-wide">文化を、政治の言語で読み解く — AIエージェント時代の政治インフラ</p>
               <p className="mt-2">政党にも企業にもよらない、完全オープンな政治テクノロジー基盤</p>
-              <p className="mt-1 text-xs text-zinc-600">Open Japan PoliTech Platform v0.1 | AGPL-3.0</p>
+              <p className="mt-1 text-xs text-zinc-600">Open Japan PoliTech Platform v0.1 | AGPL-3.0-or-later</p>
             </div>
           </footer>
         </ScrollReveal>

@@ -52,7 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <p>国会の勢力図を誰でも見える形に -- AIエージェント時代の政治インフラ</p>
               <p className="mt-2">政党にも企業にもよらない、完全オープンな政治テクノロジー基盤</p>
               <p className="mt-1 text-xs text-slate-700">
-                Open Japan PoliTech Platform v0.1 | AGPL-3.0
+                Open Japan PoliTech Platform v0.1 | AGPL-3.0-or-later
               </p>
             </div>
           </footer>

@@ -35,7 +35,7 @@ export default function AboutPage() {
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-blue-400">-</span>
-                AGPL-3.0ライセンスによる完全オープンソース
+                AGPL-3.0-or-laterライセンスによる完全オープンソース
               </li>
             </ul>
           </div>

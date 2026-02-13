@@ -79,7 +79,7 @@ export default function AboutPage() {
           <div className="dark-card p-8">
             <h2 className="mb-3 text-lg font-bold text-white">ライセンス</h2>
             <p className="leading-relaxed text-gray-400">
-              AGPL-3.0 ライセンスの下で公開されています。
+              AGPL-3.0-or-later ライセンスの下で公開されています。
               コードの利用・改変・再配布は自由ですが、派生物も同じライセンスで公開する必要があります。
             </p>
           </div>

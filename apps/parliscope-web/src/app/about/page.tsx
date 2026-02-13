@@ -40,7 +40,7 @@ export default function AboutPage() {
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
             <h3 className="mb-3 text-lg font-semibold text-white">オープンソース</h3>
             <p className="leading-relaxed text-[#8b949e]">
-              本プロジェクトはAGPL-3.0ライセンスのもとで公開されています。 Open Japan PoliTech
+              本プロジェクトはAGPL-3.0-or-laterライセンスのもとで公開されています。 Open Japan PoliTech
               Platformの一部として開発されています。
             </p>
           </div>

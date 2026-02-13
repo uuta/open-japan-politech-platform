@@ -42,4 +42,4 @@ pnpm --filter @ojpp/ingestion ingest:all
 ## ライセンス
 
 データセット自体は各元データのライセンスに従います。
-プラットフォームのコードは AGPL-3.0 です。
+プラットフォームのコードは AGPL-3.0-or-later です。
