@@ -102,7 +102,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 25_000n,   // 2.5兆円 - 児童手当、保育所運営費等
     employment: 2_500n,      // 2,500億円 - 雇用保険国庫負担等
     disability: 19_500n,     // 1.95兆円 - 障害者総合支援、特別児童扶養手当
-    total: 340_000n,         // 34兆円
+    total: 360_000n,         // 36兆円
   },
   {
     fiscalYear: 2020,
@@ -113,7 +113,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 26_000n,   // 2.6兆円
     employment: 8_000n,      // 8,000億円（雇用調整助成金等コロナ対応で急増）
     disability: 20_000n,     // 2兆円
-    total: 358_000n,         // 35.8兆円（コロナ対応で大幅増）
+    total: 376_000n,         // 37.6兆円（コロナ対応で大幅増）
   },
   {
     fiscalYear: 2021,
@@ -124,7 +124,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 26_500n,   // 2.65兆円
     employment: 7_500n,      // 7,500億円（コロナ対応継続）
     disability: 20_500n,     // 2.05兆円
-    total: 360_000n,         // 36兆円
+    total: 378_500n,         // 37.85兆円
   },
   {
     fiscalYear: 2022,
@@ -135,7 +135,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 27_000n,   // 2.7兆円
     employment: 5_000n,      // 5,000億円（雇調金縮小）
     disability: 21_000n,     // 2.1兆円
-    total: 363_000n,         // 36.3兆円
+    total: 378_000n,         // 37.8兆円
   },
   {
     fiscalYear: 2023,
@@ -146,7 +146,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 28_500n,   // 2.85兆円（出産育児一時金50万円に増額）
     employment: 3_500n,      // 3,500億円
     disability: 21_500n,     // 2.15兆円
-    total: 369_000n,         // 36.9兆円
+    total: 381_000n,         // 38.1兆円
   },
   {
     fiscalYear: 2024,
@@ -157,7 +157,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 33_000n,   // 3.3兆円（こども家庭庁・加速化プラン本格化）
     employment: 3_000n,      // 3,000億円
     disability: 22_000n,     // 2.2兆円
-    total: 377_000n,         // 37.7兆円
+    total: 389_000n,         // 38.9兆円
   },
   {
     fiscalYear: 2025,
@@ -168,7 +168,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 35_000n,   // 3.5兆円（児童手当拡充・高校無償化拡大）
     employment: 2_800n,      // 2,800億円
     disability: 22_700n,     // 2.27兆円
-    total: 384_000n,         // 38.4兆円
+    total: 397_000n,         // 39.7兆円
   },
   {
     fiscalYear: 2026,
@@ -179,7 +179,7 @@ const SOCIAL_SECURITY_BUDGET_DATA: SocialSecurityBudgetYear[] = [
     childSupport: 36_500n,   // 3.65兆円
     employment: 2_700n,      // 2,700億円
     disability: 23_300n,     // 2.33兆円
-    total: 390_000n,         // 39兆円
+    total: 404_000n,         // 40.4兆円
   },
 ];
 
