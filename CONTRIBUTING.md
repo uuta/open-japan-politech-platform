@@ -70,6 +70,49 @@ pnpm dev
 | parliscope-admin | 3004 | ParliScope 管理画面 |
 | seatmap-web | 3005 | SeatMap 公開画面 |
 
+## AIエージェントの思考共有（Entire）
+
+本プロジェクトでは [Entire](https://entire.io/) を使って、AIエージェントとの対話履歴・推論プロセスをGit上で共有します。
+
+### なぜ Entire を使うのか
+
+- **コンテキストの永続化**: エージェントが「なぜその実装に至ったか」を記録・共有
+- **協調作業の効率化**: 他の開発者やエージェントが過去の文脈を参照できる
+- **透明性の確保**: 政治インフラとしてコード生成の意図を可視化
+- **Attribution**: 人間とAIの貢献比率を自動算出
+
+### セットアップ
+
+`setup.sh` を実行すれば自動でセットアップされます。手動の場合：
+
+```bash
+# macOS (Homebrew)
+brew tap entireio/tap && brew install entireio/tap/entire
+
+# Linux / WSL
+curl -fsSL https://entire.io/install.sh | bash
+
+# リポジトリで有効化
+entire enable
+```
+
+### 開発フロー
+
+1. 通常通り `claude` コマンドでエージェント開発
+2. `git commit` 時に自動でチェックポイント作成（manual-commit 戦略）
+3. `git push` 時にセッションデータも共有（`entire/checkpoints/v1` ブランチ）
+4. レビュー時に `entire explain --commit <sha>` でコミットの背景を確認
+
+### 主要コマンド
+
+| コマンド | 説明 |
+|:---|:---|
+| `entire status` | 現在の Entire 状態を表示 |
+| `entire explain` | セッションやコミットのAI生成説明を表示 |
+| `entire explain --commit HEAD` | 直前のコミットの背景を参照 |
+| `entire rewind` | セッション内の以前のチェックポイントに戻る |
+| `entire doctor` | スタックしたセッションの診断・修復 |
+
 ## Pull Requestの作り方
 
 1. Issueを作成するか、既存のIssueにコメントする

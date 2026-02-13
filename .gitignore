@@ -48,6 +48,9 @@ signing_keys.json
 # TypeScript
 *.tsbuildinfo
 
+# Entire (AI session context sharing)
+.entire/settings.local.json
+
 # Misc
 *.log
 npm-debug.log*

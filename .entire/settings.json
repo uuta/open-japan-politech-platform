@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "strategy": "manual-commit",
+  "agent": "claude-code",
+  "strategy_options": {
+    "push_sessions": true,
+    "summarize": {
+      "enabled": true
+    }
+  },
+  "telemetry": false
+}

@@ -362,6 +362,8 @@ Prisma 6 — **29 models**, **14 enums**
 | **機械可読データ** | JSON構造化データを標準。人間用UIとエージェント用APIの両方 |
 | **エージェント認証** *(v0.2)* | AIエージェント用の認証・権限管理 |
 | **MCP対応** *(v0.2)* | Model Context Protocol による外部AIとの連携 |
+| **思考の共有** | [Entire](https://entire.io/) によるエージェントセッションの永続化。コミットと紐付けて「なぜこのコードが書かれたか」を共有 |
+| **Attribution** | Entire による人間/AI貢献比率の自動算出・記録 |
 | **監査ログ** *(v0.2)* | 全操作のトレーサビリティ。エージェントの行動も透明 |
 
 ---
@@ -413,6 +415,7 @@ open-japan-politech-platform/
 | **Monorepo** | pnpm 10 workspaces + Turborepo |
 | **Lint / Format** | Biome 2.3 |
 | **Test** | Vitest 3 |
+| **AI Session** | Entire — エージェント思考の永続化・共有 |
 | **CI/CD** | GitHub Actions |
 
 ---
@@ -428,6 +431,7 @@ open-japan-politech-platform/
 - [x] CultureScope — 文化政策可視化
 - [x] SocialGuard — 社会保障可視化
 - [x] Vercel デプロイ
+- [x] Entire 導入 (AIエージェントセッション共有・Attribution)
 - [ ] 認証・認可 (Supabase Auth)
 - [ ] AIエージェント認証 (APIキー / MCP)
 - [ ] GraphQL API

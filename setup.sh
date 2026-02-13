@@ -54,7 +54,7 @@ SKIP_DOCKER=false
 COMPOSE=""
 TOTAL_START=$SECONDS
 STEP=0
-TOTAL_STEPS=14
+TOTAL_STEPS=15
 APP_PIDS=()
 
 # Ensure cursor is visible on exit
@@ -234,7 +234,7 @@ echo -e "  \033[38;5;129m ╚██████╔╝\033[38;5;165m╚███�
 echo -e "  \033[38;5;129m  ╚═════╝ \033[38;5;165m ╚════╝ \033[38;5;201m╚═╝     \033[38;5;198m╚═╝     ${R}"
 
 echo ""
-echo -ne "  "; rainbow "Open Japan PoliTech Platform"; echo -e "  ${DGRAY}v0.1${R}"
+echo -ne "  "; rainbow "Open Japan PoliTech Platform"; echo -e "  ${DGRAY}v0.1.1${R}"
 echo ""
 echo -e "  ${LAVD}🏛️✨ ${B}AIエージェント時代の政治インフラ${R} ${PINK}*:${R}${HOT}.${R}${GOLD}*${R}${PINK}｡${R}${HOT}･ﾟ${R}${GOLD}✧${R}"
 echo -e "  ${GRAY}🌏 政党にも企業にもよらない、完全オープンな政治テクノロジー基盤 💫${R}"
@@ -533,6 +533,100 @@ if ! command -v pnpm &>/dev/null; then
   fi
 fi
 ok "📦💨 pnpm $(pnpm --version) — 爆速パッケージマネージャー！ﾋﾞｭﾝﾋﾞｭﾝ！"
+step_pct
+
+# =============================================================================
+#  3.5. Entire CLI  ～AIの記憶を紡ぐ者～  【オプション・失敗しても続行】
+# =============================================================================
+section "🧠💫 Entire CLI ～AIエージェントの思考を共有する魔法～ (◕‿◕✿)"
+
+ENTIRE_OK=false
+
+install_entire() {
+  if [[ "$OSTYPE" == darwin* ]] && command -v brew &>/dev/null; then
+    # macOS + Homebrew: tap & install
+    run_spin "🧠 Entire CLI をインストール (brew)" bash -c \
+      "brew tap entireio/tap >> '$LOG' 2>&1 && brew install entireio/tap/entire >> '$LOG' 2>&1" \
+      && return 0
+  fi
+  # Linux / WSL / Homebrew がない場合: curl installer
+  run_spin "🧠 Entire CLI をインストール (curl)" bash -c \
+    "curl -fsSL https://entire.io/install.sh 2>/dev/null | bash >> '$LOG' 2>&1" \
+    && return 0
+  return 1
+}
+
+enable_entire() {
+  # .entire/settings.json が既にリポジトリにあるので --force でフック再インストール
+  # --project で共有設定を使用、--agent claude-code でClaude Code対応
+  if entire enable --force --agent claude-code --strategy manual-commit --project >> "$LOG" 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+if command -v entire &>/dev/null; then
+  ENTIRE_VER=$(entire version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | /usr/bin/head -1 || echo "?")
+  ok "🧠✨ Entire ${ENTIRE_VER} — もう入ってるね！ﾃﾞｷﾙ子！"
+  if enable_entire; then
+    ENTIRE_OK=true
+    ok "🧠🔗 Entire Git フック設定完了！エージェントの思考が記録されるよ ✨"
+  else
+    wrn "Entire のフック設定をスキップ（手動で ${CYN}entire enable${R} してね）"
+  fi
+elif [[ "$OSTYPE" == darwin* ]] && command -v brew &>/dev/null; then
+  # macOS + Homebrew がある → 自動インストール試行
+  msg "${SKY}🧠 Entire CLI（AIセッション共有ツール）を自動インストールするね${R}"
+  if install_entire && command -v entire &>/dev/null; then
+    ENTIRE_VER=$(entire version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | /usr/bin/head -1 || echo "?")
+    ok "🧠🎉 Entire ${ENTIRE_VER} — インストール完了！ﾔｯﾀ！"
+    if enable_entire; then
+      ENTIRE_OK=true
+      ok "🧠🔗 Entire Git フック設定完了！エージェントの思考が記録されるよ ✨"
+    else
+      wrn "Entire のフック設定をスキップ（手動で ${CYN}entire enable${R} してね）"
+    fi
+  else
+    echo ""
+    echo -e "  ${LAVD}┌───────────────────────────────────────────────────────────${R}"
+    echo -e "  ${LAVD}│${R}  ${B}🧠 Entire CLI のインストールをスキップしたよ${R}"
+    echo -e "  ${LAVD}│${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}これはオプションのツールだよ♪ なくても全然大丈夫！${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}あとで入れたくなったら:${R}"
+    echo -e "  ${LAVD}│${R}  ${CYN}  brew tap entireio/tap && brew install entireio/tap/entire${R}"
+    echo -e "  ${LAVD}│${R}  ${CYN}  entire enable${R}"
+    echo -e "  ${LAVD}│${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}💡 AIエージェントの思考プロセスをGitで共有できるよ${R}"
+    echo -e "  ${LAVD}└───────────────────────────────────────────────────────────${R}"
+    echo ""
+  fi
+else
+  # Homebrew がない Linux 等 → curl で試行
+  msg "${SKY}🧠 Entire CLI（AIセッション共有ツール）を自動インストールするね${R}"
+  if install_entire && command -v entire &>/dev/null; then
+    ENTIRE_VER=$(entire version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | /usr/bin/head -1 || echo "?")
+    ok "🧠🎉 Entire ${ENTIRE_VER} — インストール完了！ﾔｯﾀ！"
+    if enable_entire; then
+      ENTIRE_OK=true
+      ok "🧠🔗 Entire Git フック設定完了！エージェントの思考が記録されるよ ✨"
+    else
+      wrn "Entire のフック設定をスキップ（手動で ${CYN}entire enable${R} してね）"
+    fi
+  else
+    echo ""
+    echo -e "  ${LAVD}┌───────────────────────────────────────────────────────────${R}"
+    echo -e "  ${LAVD}│${R}  ${B}🧠 Entire CLI のインストールをスキップしたよ${R}"
+    echo -e "  ${LAVD}│${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}これはオプションのツールだよ♪ なくても全然大丈夫！${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}あとで入れたくなったら:${R}"
+    echo -e "  ${LAVD}│${R}  ${CYN}  curl -fsSL https://entire.io/install.sh | bash${R}"
+    echo -e "  ${LAVD}│${R}  ${CYN}  entire enable${R}"
+    echo -e "  ${LAVD}│${R}"
+    echo -e "  ${LAVD}│${R}  ${GRAY}💡 AIエージェントの思考プロセスをGitで共有できるよ${R}"
+    echo -e "  ${LAVD}└───────────────────────────────────────────────────────────${R}"
+    echo ""
+  fi
+fi
 step_pct
 
 # =============================================================================
@@ -867,6 +961,18 @@ echo -e "  ${DGRAY}║${R}                                                      
 echo -e "  ${DGRAY}╠══════════════════════════════════════════════════════════════════════╣${R}"
 echo -e "  ${DGRAY}║${R}                                                                      ${DGRAY}║${R}"
 echo -e "  ${DGRAY}║${R}  ${GRAY}管理画面${R}  ${MGA_COLOR}localhost:${PORT_MGA}${R} ${GRAY}(MoneyGlass)${R}  ${PSA_COLOR}localhost:${PORT_PSA}${R} ${GRAY}(ParliScope)${R} ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}                                                                      ${DGRAY}║${R}"
+echo -e "  ${DGRAY}╠══════════════════════════════════════════════════════════════════════╣${R}"
+echo -e "  ${DGRAY}║${R}                                                                      ${DGRAY}║${R}"
+if [ "$ENTIRE_OK" = true ]; then
+echo -e "  ${DGRAY}║${R}  ${LAVD}${B}🧠 Entire${R}  ${GRN}有効${R} ${GRAY}— エージェントの思考がGitで共有されるよ！${R}         ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}     ${GRAY}📖 entire explain${R} ${DGRAY}—${R} ${GRAY}コミットの背景を参照${R}                     ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}     ${GRAY}📊 entire status${R}  ${DGRAY}—${R} ${GRAY}セッションの状態確認${R}                     ${DGRAY}║${R}"
+else
+echo -e "  ${DGRAY}║${R}  ${LAVD}${B}🧠 Entire${R}  ${GOLD}未設定${R} ${GRAY}— あとで導入できるよ:${R}                      ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}     ${CYN}brew tap entireio/tap && brew install entireio/tap/entire${R}   ${DGRAY}║${R}"
+echo -e "  ${DGRAY}║${R}     ${CYN}entire enable${R}                                               ${DGRAY}║${R}"
+fi
 echo -e "  ${DGRAY}║${R}                                                                      ${DGRAY}║${R}"
 echo -e "  ${DGRAY}╚══════════════════════════════════════════════════════════════════════╝${R}"
 echo ""
