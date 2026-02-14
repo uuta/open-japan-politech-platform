@@ -1,7 +1,8 @@
 /**
  * ingest-sessions.ts
  *
- * 国会会期データの投入（第190回〜第220回）
+ * 国会会期データの投入（第150回〜第220回）
+ * 2000年（平成12年）〜2026年（令和8年）の71会期をカバー
  *
  * データソース:
  *   - 衆議院 国会会期一覧 (https://www.shugiin.go.jp/internet/itdb_annai.nsf/html/statics/shiryo/kaiki.htm)
@@ -19,6 +20,62 @@ interface SessionData {
 }
 
 const SESSIONS: SessionData[] = [
+  // --- 第150回〜第153回（2000〜2001年）森内閣・小泉内閣 ---
+  { number: 150, type: "EXTRAORDINARY", startDate: "2000-09-21", endDate: "2000-12-01" },
+  { number: 151, type: "ORDINARY", startDate: "2001-01-31", endDate: "2001-06-29" },
+  { number: 152, type: "EXTRAORDINARY", startDate: "2001-08-07", endDate: "2001-08-10" }, // 参院選後・4日間
+  { number: 153, type: "EXTRAORDINARY", startDate: "2001-09-27", endDate: "2001-12-07" }, // 9.11後テロ対策
+
+  // --- 第154回〜第158回（2002〜2003年）小泉内閣 ---
+  { number: 154, type: "ORDINARY", startDate: "2002-01-21", endDate: "2002-07-31" },
+  { number: 155, type: "EXTRAORDINARY", startDate: "2002-10-18", endDate: "2002-12-13" },
+  { number: 156, type: "ORDINARY", startDate: "2003-01-20", endDate: "2003-07-28" },
+  { number: 157, type: "EXTRAORDINARY", startDate: "2003-09-26", endDate: "2003-10-10" }, // 衆院解散
+  { number: 158, type: "SPECIAL", startDate: "2003-11-19", endDate: "2003-11-27" }, // 第43回衆院選後・小泉再指名
+
+  // --- 第159回〜第163回（2004〜2005年）小泉内閣 ---
+  { number: 159, type: "ORDINARY", startDate: "2004-01-19", endDate: "2004-06-16" },
+  { number: 160, type: "EXTRAORDINARY", startDate: "2004-07-30", endDate: "2004-08-06" }, // 参院選後・8日間
+  { number: 161, type: "EXTRAORDINARY", startDate: "2004-10-12", endDate: "2004-12-03" },
+  { number: 162, type: "ORDINARY", startDate: "2005-01-21", endDate: "2005-08-08" }, // 郵政解散
+  { number: 163, type: "SPECIAL", startDate: "2005-09-21", endDate: "2005-11-01" }, // 第44回衆院選後・小泉再指名
+
+  // --- 第164回〜第168回（2006〜2007年）小泉→安倍→福田内閣 ---
+  { number: 164, type: "ORDINARY", startDate: "2006-01-20", endDate: "2006-06-18" },
+  { number: 165, type: "EXTRAORDINARY", startDate: "2006-09-26", endDate: "2006-12-19" }, // 安倍内閣発足
+  { number: 166, type: "ORDINARY", startDate: "2007-01-25", endDate: "2007-07-05" },
+  { number: 167, type: "EXTRAORDINARY", startDate: "2007-08-07", endDate: "2007-08-10" }, // 参院選後・4日間
+  { number: 168, type: "EXTRAORDINARY", startDate: "2007-09-10", endDate: "2008-01-15" }, // 安倍辞任→福田内閣発足
+
+  // --- 第169回〜第172回（2008〜2009年）福田→麻生→鳩山内閣 ---
+  { number: 169, type: "ORDINARY", startDate: "2008-01-18", endDate: "2008-06-21" },
+  { number: 170, type: "EXTRAORDINARY", startDate: "2008-09-24", endDate: "2008-12-25" }, // 麻生内閣発足
+  { number: 171, type: "ORDINARY", startDate: "2009-01-05", endDate: "2009-07-21" }, // 衆院解散
+  { number: 172, type: "SPECIAL", startDate: "2009-09-16", endDate: "2009-09-19" }, // 第45回衆院選後・鳩山首相指名
+
+  // --- 第173回〜第177回（2009〜2011年）鳩山→菅内閣 ---
+  { number: 173, type: "EXTRAORDINARY", startDate: "2009-10-26", endDate: "2009-12-04" },
+  { number: 174, type: "ORDINARY", startDate: "2010-01-18", endDate: "2010-06-16" },
+  { number: 175, type: "EXTRAORDINARY", startDate: "2010-07-30", endDate: "2010-08-06" }, // 参院選後・8日間
+  { number: 176, type: "EXTRAORDINARY", startDate: "2010-10-01", endDate: "2010-12-03" },
+  { number: 177, type: "ORDINARY", startDate: "2011-01-24", endDate: "2011-08-31" }, // 東日本大震災・70日延長
+
+  // --- 第178回〜第182回（2011〜2012年）野田内閣 ---
+  { number: 178, type: "EXTRAORDINARY", startDate: "2011-09-13", endDate: "2011-09-30" }, // 野田内閣発足
+  { number: 179, type: "EXTRAORDINARY", startDate: "2011-10-20", endDate: "2011-12-09" },
+  { number: 180, type: "ORDINARY", startDate: "2012-01-24", endDate: "2012-09-08" }, // 79日延長・社会保障と税の一体改革
+  { number: 181, type: "EXTRAORDINARY", startDate: "2012-10-29", endDate: "2012-11-16" }, // 衆院解散
+  { number: 182, type: "SPECIAL", startDate: "2012-12-26", endDate: "2012-12-28" }, // 第46回衆院選後・安倍首相指名
+
+  // --- 第183回〜第189回（2013〜2015年）第2次安倍内閣 ---
+  { number: 183, type: "ORDINARY", startDate: "2013-01-28", endDate: "2013-06-26" },
+  { number: 184, type: "EXTRAORDINARY", startDate: "2013-08-02", endDate: "2013-08-07" }, // 参院選後・6日間
+  { number: 185, type: "EXTRAORDINARY", startDate: "2013-10-15", endDate: "2013-12-08" }, // 特定秘密保護法
+  { number: 186, type: "ORDINARY", startDate: "2014-01-24", endDate: "2014-06-22" },
+  { number: 187, type: "EXTRAORDINARY", startDate: "2014-09-29", endDate: "2014-11-21" }, // 衆院解散
+  { number: 188, type: "SPECIAL", startDate: "2014-12-24", endDate: "2014-12-26" }, // 第47回衆院選後・安倍再指名
+  { number: 189, type: "ORDINARY", startDate: "2015-01-26", endDate: "2015-09-27" }, // 安保法制・95日延長
+
   // --- 第190回〜第199回（2016〜2019年）安倍内閣 ---
   { number: 190, type: "ORDINARY", startDate: "2016-01-04", endDate: "2016-06-01" },
   { number: 191, type: "EXTRAORDINARY", startDate: "2016-08-01", endDate: "2016-08-03" }, // 参院選後・3日間
