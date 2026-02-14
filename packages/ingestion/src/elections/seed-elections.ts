@@ -1,5 +1,5 @@
 /**
- * 選挙データのシード — 衆議院・参議院の実選挙結果（2003〜2026）
+ * 選挙データのシード — 衆議院・参議院の実選挙結果（1996〜2026）
  *
  * 総務省選挙関連資料に基づく実データ。
  * https://www.soumu.go.jp/senkyo/
@@ -130,6 +130,34 @@ const HISTORICAL_PARTIES: HistoricalParty[] = [
     founded: "2008-08-28",
     dissolved: "2016-07-25",
   },
+  {
+    name: "新進党",
+    shortName: "新進",
+    color: "#0066CC",
+    founded: "1994-12-10",
+    dissolved: "1997-12-31",
+  },
+  {
+    name: "自由党",
+    shortName: "自由",
+    color: "#006B3C",
+    founded: "1998-01-06",
+    dissolved: "2003-09-26",
+  },
+  {
+    name: "保守党",
+    shortName: "保守",
+    color: "#8B4513",
+    founded: "2000-04-03",
+    dissolved: "2002-12-25",
+  },
+  {
+    name: "新党さきがけ",
+    shortName: "さきがけ",
+    color: "#32CD32",
+    founded: "1993-06-21",
+    dissolved: "2004-10-31",
+  },
 ];
 
 // ============================================
@@ -163,10 +191,124 @@ interface ElectionData {
 }
 
 // ============================================
-// 衆議院選挙データ（2003〜2026）
+// 衆議院選挙データ（1996〜2026）
 // ============================================
 
 const HOUSE_OF_REPRESENTATIVES_ELECTIONS: ElectionData[] = [
+  {
+    name: "第41回衆議院議員総選挙",
+    chamber: "HOUSE_OF_REPRESENTATIVES",
+    date: "1996-10-20",
+    totalSeats: 500,
+    districtSeats: 300,
+    proportionalSeats: 200,
+    turnout: 59.65,
+    results: [
+      {
+        partyName: "自由民主党",
+        seatsWon: 239,
+        districtSeats: 169,
+        proportionalSeats: 70,
+        totalVotes: 18205955n,
+        voteShare: 32.76,
+      },
+      {
+        partyName: "新進党",
+        seatsWon: 156,
+        districtSeats: 96,
+        proportionalSeats: 60,
+        totalVotes: 15812326n,
+        voteShare: 28.45,
+      },
+      {
+        partyName: "民主党",
+        seatsWon: 52,
+        districtSeats: 17,
+        proportionalSeats: 35,
+        totalVotes: 8949190n,
+        voteShare: 16.1,
+      },
+      {
+        partyName: "日本共産党",
+        seatsWon: 26,
+        districtSeats: 2,
+        proportionalSeats: 24,
+        totalVotes: 7268743n,
+        voteShare: 13.08,
+      },
+      {
+        partyName: "社民党",
+        seatsWon: 15,
+        districtSeats: 4,
+        proportionalSeats: 11,
+        totalVotes: 3547240n,
+        voteShare: 6.38,
+      },
+      { partyName: "新党さきがけ", seatsWon: 2, districtSeats: 2, proportionalSeats: 0 },
+      { partyName: "無所属", seatsWon: 10, districtSeats: 10, proportionalSeats: 0 },
+    ],
+  },
+  {
+    name: "第42回衆議院議員総選挙",
+    chamber: "HOUSE_OF_REPRESENTATIVES",
+    date: "2000-06-25",
+    totalSeats: 480,
+    districtSeats: 300,
+    proportionalSeats: 180,
+    turnout: 62.49,
+    results: [
+      {
+        partyName: "自由民主党",
+        seatsWon: 233,
+        districtSeats: 177,
+        proportionalSeats: 56,
+        totalVotes: 16943425n,
+        voteShare: 28.31,
+      },
+      {
+        partyName: "民主党",
+        seatsWon: 127,
+        districtSeats: 80,
+        proportionalSeats: 47,
+        totalVotes: 15067990n,
+        voteShare: 25.18,
+      },
+      {
+        partyName: "公明党",
+        seatsWon: 31,
+        districtSeats: 7,
+        proportionalSeats: 24,
+        totalVotes: 7762032n,
+        voteShare: 12.97,
+      },
+      {
+        partyName: "自由党",
+        seatsWon: 22,
+        districtSeats: 4,
+        proportionalSeats: 18,
+        totalVotes: 6589490n,
+        voteShare: 11.01,
+      },
+      {
+        partyName: "日本共産党",
+        seatsWon: 20,
+        districtSeats: 0,
+        proportionalSeats: 20,
+        totalVotes: 6719016n,
+        voteShare: 11.23,
+      },
+      {
+        partyName: "社民党",
+        seatsWon: 19,
+        districtSeats: 4,
+        proportionalSeats: 15,
+        totalVotes: 5603680n,
+        voteShare: 9.36,
+      },
+      { partyName: "保守党", seatsWon: 7, districtSeats: 7, proportionalSeats: 0 },
+      { partyName: "無所属", seatsWon: 21, districtSeats: 21, proportionalSeats: 0 },
+    ],
+  },
   {
     name: "第43回衆議院議員総選挙",
     chamber: "HOUSE_OF_REPRESENTATIVES",
@@ -864,10 +1006,131 @@ const HOUSE_OF_REPRESENTATIVES_ELECTIONS: ElectionData[] = [
 ];
 
 // ============================================
-// 参議院選挙データ（2004〜2025）
+// 参議院選挙データ（1998〜2025）
 // ============================================
 
 const HOUSE_OF_COUNCILLORS_ELECTIONS: ElectionData[] = [
+  {
+    name: "第18回参議院議員通常選挙",
+    chamber: "HOUSE_OF_COUNCILLORS",
+    date: "1998-07-12",
+    totalSeats: 126,
+    districtSeats: 76,
+    proportionalSeats: 50,
+    turnout: 58.84,
+    results: [
+      {
+        partyName: "自由民主党",
+        seatsWon: 44,
+        districtSeats: 30,
+        proportionalSeats: 14,
+        totalVotes: 14128719n,
+        voteShare: 25.17,
+      },
+      {
+        partyName: "民主党",
+        seatsWon: 27,
+        districtSeats: 15,
+        proportionalSeats: 12,
+        totalVotes: 12209685n,
+        voteShare: 21.75,
+      },
+      {
+        partyName: "日本共産党",
+        seatsWon: 15,
+        districtSeats: 8,
+        proportionalSeats: 7,
+        totalVotes: 8195078n,
+        voteShare: 14.6,
+      },
+      {
+        partyName: "公明党",
+        seatsWon: 9,
+        districtSeats: 2,
+        proportionalSeats: 7,
+        totalVotes: 7748301n,
+        voteShare: 13.8,
+      },
+      {
+        partyName: "自由党",
+        seatsWon: 6,
+        districtSeats: 3,
+        proportionalSeats: 3,
+        totalVotes: 5207813n,
+        voteShare: 9.28,
+      },
+      {
+        partyName: "社民党",
+        seatsWon: 5,
+        districtSeats: 2,
+        proportionalSeats: 3,
+        totalVotes: 4370763n,
+        voteShare: 7.79,
+      },
+      { partyName: "無所属", seatsWon: 20, districtSeats: 16, proportionalSeats: 4 },
+    ],
+  },
+  {
+    name: "第19回参議院議員通常選挙",
+    chamber: "HOUSE_OF_COUNCILLORS",
+    date: "2001-07-29",
+    totalSeats: 121,
+    districtSeats: 73,
+    proportionalSeats: 48,
+    turnout: 56.44,
+    results: [
+      {
+        partyName: "自由民主党",
+        seatsWon: 64,
+        districtSeats: 46,
+        proportionalSeats: 18,
+        totalVotes: 21114727n,
+        voteShare: 38.57,
+      },
+      {
+        partyName: "民主党",
+        seatsWon: 26,
+        districtSeats: 18,
+        proportionalSeats: 8,
+        totalVotes: 8990524n,
+        voteShare: 16.42,
+      },
+      {
+        partyName: "公明党",
+        seatsWon: 13,
+        districtSeats: 5,
+        proportionalSeats: 8,
+        totalVotes: 8187804n,
+        voteShare: 14.96,
+      },
+      {
+        partyName: "自由党",
+        seatsWon: 6,
+        districtSeats: 2,
+        proportionalSeats: 4,
+        totalVotes: 4227148n,
+        voteShare: 7.72,
+      },
+      {
+        partyName: "日本共産党",
+        seatsWon: 5,
+        districtSeats: 1,
+        proportionalSeats: 4,
+        totalVotes: 4329210n,
+        voteShare: 7.91,
+      },
+      {
+        partyName: "社民党",
+        seatsWon: 3,
+        districtSeats: 1,
+        proportionalSeats: 2,
+        totalVotes: 3628635n,
+        voteShare: 6.63,
+      },
+      { partyName: "保守党", seatsWon: 1, districtSeats: 1, proportionalSeats: 0 },
+      { partyName: "無所属", seatsWon: 3, districtSeats: 3, proportionalSeats: 0 },
+    ],
+  },
   {
     name: "第20回参議院議員通常選挙",
     chamber: "HOUSE_OF_COUNCILLORS",
