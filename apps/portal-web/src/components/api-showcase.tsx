@@ -14,6 +14,7 @@ function CopyBtn({ text, label }: { text: string; label?: string }) {
   };
   return (
     <button
+      type="button"
       onClick={handleCopy}
       className="mono shrink-0 border border-[var(--border)] px-2 py-0.5 text-[0.55rem] tracking-wider transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]"
       style={
